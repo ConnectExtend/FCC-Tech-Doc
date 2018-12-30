@@ -1,0 +1,217 @@
+<!-- all id="" inserted as part of freeCodeCamp test suite -->
+
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Introduction to JavaScript Promises with code examples">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#eeeeee">
+  <!-- <link rel="manifest" href="manifest.json"> -->
+  <link href="./assets/css/modern-normalize.css" rel="stylesheet">
+  <link href="./assets/css/styles.css" rel="stylesheet">
+  <title>FCC Technical Documentation Page</title>
+</head>
+
+<body>
+
+  <nav id="navbar">
+    <header class="nav-header">
+      <h1>JavaScript Promises</h1>
+      <p>Design Inspiration: freeCodeCamp cohort colleague <a class="header-link" href="https://forum.freecodecamp.org/u/camper">@camper</a></p>
+      <p>Content Source: <a class="header-link" href="https://www.udacity.com/course/javascript-promises--ud898">Udacity
+          JavaScript Promises course</a></p>
+      <p>&copy; December 2018</p>
+    </header>
+
+    <button id="contents-button" class="contents-button">Contents</button>
+    <a class="nav-link hide" href="#What_are_JavaScript_Promises?">What are JavaScript Promises?</a>
+    <a class="nav-link hide" href="#How_to_Create_a_Promise">How to Create a Promise</a>
+    <a class="nav-link hide" href="#Chaining">Chaining</a>
+    <a class="nav-link hide" href="#When_Promises_Really_Start_to_Stand-Out">When Promises Really Start to Stand-Out</a>
+    <a class="nav-link hide" href="#Sequence_of_Actions_for_Async_Code">Sequence of Actions for Async Code</a>
+    <a class="nav-link hide" href="#Resources">Resources</a>
+  </nav>
+
+  <main id="main-doc">
+
+    <section id="What_are_JavaScript_Promises?" class="main-section">
+      <header>
+        <h2 class="section-title">What are JavaScript Promises?</h2>
+      </header>
+      <p>Event listeners are great for things that can happen multiple times on the same object—keyup, click,
+        touchstart etc. With those events, you don't really care about what happened before you attached the listener.</p>
+      <p class="leadin-phrase">At their most basic, <strong>promises</strong> are a bit like event listeners except:</p>
+      <ul>
+        <li>A promise can only succeed or fail once. It cannot switch from success to failure or vice versa.</li>
+        <li>If a promise has succeeded or failed and you later add a success/failure callback, the correct callback
+          will be called, even though the event took place earlier.</li>
+      </ul>
+      <p>This is extremely useful for async success/failure, because you're less interested in the exact time something
+        became available, and more interested in reacting to the outcome.</p>
+      <p class="leadin-phrase">When it comes to async success/failure, ideally you want something like this pseudo
+        code:</p>
+      <pre><code>
+img1.callThisIfLoadedOrWhenLoaded(<span class="code-keyword">function</span>() {
+  <span class="code-comment">// loaded</span>
+}).orIfFailedCallThis(<span class="code-keyword">function</span>() {
+  <span class="code-comment">// failed</span>
+});
+
+<span class="code-comment">// and…</span>
+whenAllTheseHaveLoaded([img1, img2]).callThis(<span class="code-keyword">function</span>() {
+  <span class="code-comment">// all loaded</span>
+}).orIfSomeFailedCallThis(<span class="code-keyword">function</span>() {
+  <span class="code-comment">// one or more failed</span>
+});
+      </code></pre>
+    </section>
+
+    <section id="How_to_Create_a_Promise" class="main-section">
+      <header>
+        <h2 class="section-title">How to Create a Promise</h2>
+      </header>
+      <p class="leadin-phrase">A promise can be:</p>
+      <ul>
+        <li><b>fullfilled</b> - The action relating to the promise succeeded (think: resolve)</li>
+        <li><b>rejected</b> - The action relating to the promise failed</li>
+        <li><b>pending</b> - Hasn't fulfilled or rejected yet</li>
+        <li><b>settled</b> - Has fulfilled or rejected</li>
+      </ul>
+      <p class="leadin-phrase">Here's how you create a promise:</p>
+      <pre><code>
+<span class="code-keyword">var</span> promise = new Promise(<span class="code-keyword">function</span>(resolve, reject) {
+  <span class="code-comment">// do a thing, possibly async, then…</span>
+
+  <span class="code-keyword">if</span> (<span class="code-comment">/* everything turned out fine */</span>) {
+    resolve("Stuff worked!");
+  }
+  <span class="code-keyword">else</span> {
+    reject(Error("It broke"));
+  }
+});
+      </code></pre>
+      <p>The promise constructor takes one argument, a callback with two parameters. The parameters are: resolve and
+        reject. Do something within the callback, perhaps async, then call resolve if everything worked; otherwise,
+        call reject.</p>
+      <p>Like <code>throw</code> in plain old JavaScript, it's customary, but not required, to reject with an Error
+        object. The benefit of Error objects is they capture a stack trace, making debugging tools more helpful.</p>
+      <p class="leadin-phrase">Here's how you use that promise:</p>
+      <pre><code>
+promise.then(<span class="code-keyword">function</span>(result) {
+  console.log(result); <span class="code-comment">// "Stuff worked!"</span>
+}, <span class="code-keyword">function</span>(err) {
+  console.log(err); <span class="code-comment">// Error: "It broke"</span>
+});
+      </code></pre>
+
+      <p><code>then()</code> takes two arguments, a callback for a success case, and another for the failure case. Both
+        are optional, so you can add a callback for the success or failure case only.</p>
+    </section>
+
+    <section id="Chaining" class="main-section">
+      <header>
+        <h2 class="section-title">Chaining</h2>
+      </header>
+      <p>One single <code>.then()</code> isn't the end of the story, you can chain <code>.then</code>s together to
+        transform values or run additional async actions one after another. One of the great things about using
+        promises is<b> chaining</b>.</p>
+      <p><b>Chaining that transforms values</b></p>
+      <p class="leadin-phrase">For example, you can transform values simply by returning the new value:</p>
+      <pre><code>
+<span class="code-keyword">var</span> promise = new Promise(<span class="code-keyword">function</span>(resolve, reject) {
+  resolve(1);
+});
+
+promise.then(<span class="code-keyword">function</span>(val) {
+  console.log(val); <span class="code-comment">// 1</span>
+  <span class="code-keyword">return</span> val + 2;
+}).then(<span class="code-keyword">function</span>(val) {
+  console.log(val); <span class="code-comment">// 3</span>
+});
+      </code></pre>
+    </section>
+
+    <section id="When_Promises_Really_Start_to_Stand-Out" class="main-section">
+      <header>
+        <h2 class="section-title">When Promises Really Start to Stand-Out</h2>
+      </header>
+      <p><b>Chaining/Queuing asynchronous actions (chained <i>thenables</i>)</b></p>
+      <p>You can chain <code>.then</code>s to run async actions in sequence. Each callback is executed one after
+        another, in the order in which they were inserted. When you return something from a <code>.then()</code> callback,
+        it's a bit of magic. If you return a value, the next <code>.then()</code> is called with that value. However,
+        if you return something promise-like, the next <code>.then()</code> waits on it, and is only called when that
+        promise settles (succeeds/fails).</p>
+      <p class="leadin-phrase">For example:</p>
+      <pre><code>
+getJSON('story.json').then(<span class="code-keyword">function</span>(story) {
+  <span class="code-keyword">return</span> getJSON(story.chapterUrls[0]);
+}).then(<span class="code-keyword">function</span>(chapter1) {
+  console.log("Got chapter 1!", chapter1);
+}) 
+      </code></pre>
+      <p>Below we make an async request to story.json, which gives us a set of URLs to request, then we request the
+        first of those. This is when promises really start to stand-out from simple callback patterns.</p>
+      <p class="leadin-phrase">You could even make a shortcut method to get chapters:</p>
+      <pre><code>
+<span class="code-keyword">var</span> storyPromise;
+
+<span class="code-keyword">function</span> getChapter(i) {
+  storyPromise = storyPromise || getJSON('story.json');
+
+  <span class="code-keyword">return</span> storyPromise.then(<span class="code-keyword">function</span>(story) {
+    <span class="code-keyword">return</span> getJSON(story.chapterUrls[i]);
+  })
+}
+
+getChapter(0).then(<span class="code-keyword">function</span>(chapter) {
+  console.log(chapter);
+  <span class="code-keyword">return</span> getChapter(1);
+}).then(<span class="code-keyword">function</span>(chapter) {
+  console.log(chapter);
+})
+      </code></pre>
+
+      <p>We don't download story.json until <code>getChapter</code> is called, but the next time(s) <code>getChapter</code>
+        is called we reuse the story promise, so story.json is only fetched once. <em>Yay Promises!</em></p>
+    </section>
+
+    <section id="Sequence_of_Actions_for_Async_Code" class="main-section">
+      <header>
+        <h2 class="section-title">Sequence of Actions for Async Code</h2>
+      </header>
+      <p class="leadin-phrase">Async code can occur in series or in parallel:</p>
+      <ul>
+        <li><b>Series:</b> Actions in series occur one after another; each action waits its turn. Synchronous code is
+          always in series. If one request depends on another, then the requests must be done in series.</li>
+        <li><b>Parallel:</b> Actions in parallel occur simultaneously. Programmatic requests occur in parallel; this
+          reduces the load time for all of the data. However, the requests could return in a random order unless a
+          strategy for controlling the order
+          is used.</li>
+      </ul>
+    </section>
+
+    <section id="Resources" class="main-section">
+      <header>
+        <h2 class="section-title">Resources</h2>
+      </header>
+      <p class="leadin-phrase">These resources were helpful:</p>
+      <ul>
+        <li><a href="https://www.udacity.com/course/javascript-promises--ud898">Udacity - JavaScript Promises course</a></li>
+        <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises">MDN Guide - Using
+            JavaScript Promises</a></li>
+        <li><a href="https://developers.google.com/web/fundamentals/primers/promises">Google Guide - JavaScript
+            Promises: an Introduction</a></li>
+        <li><a href="https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md">Domenic
+            Denicola - Operational Definitions of JavaScript Promises </a></li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="./assets/scripts/main.js"></script>
+  <!-- <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script> -->
+</body>
+
+</html>
